@@ -24,7 +24,7 @@ public class TRY_1 {
             EZ_binary = EZ_binary + getBin(dec) + " ";
         }
 
-        System.out.println(EZ_binary);
+        // System.out.println(EZ_binary);
 
         //DEcoding
         System.out.println("\ndecoding:");
@@ -32,18 +32,18 @@ public class TRY_1 {
         for(int i=0; i<st.length; i++){
             decoded_text += getSym(st[i]);
         }
-        // System.out.println(text);
-        // System.out.println(decoded_text);
+        System.out.println("\nOriginal:" + text);
+        System.out.println("After:   "+decoded_text);
         /////////////////////////
-        
+
         //input file
-        BufferedReader bf = new BufferedReader(new FileReader("text.txt"));
-        String line;
-        System.out.println("\n");
-        while ((line = bf.readLine()) != null) {
-            System.out.println(line);
-        }
-        bf.close();
+        // BufferedReader bf = new BufferedReader(new FileReader("text.txt"));
+        // String line;
+        // System.out.println("\n");
+        // while ((line = bf.readLine()) != null) {
+        //     System.out.println(line);
+        // }
+        // bf.close();
 
     }
 
