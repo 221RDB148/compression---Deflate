@@ -1,40 +1,37 @@
+import java.nio.file.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class LzssTest {
+public class Main {
     public static void main(String[] args) throws Exception {
-        LzssCompress compressor = new LzssCompress("File2.html",32768, 258);
-        Log.println(Log.GREEN + "compressing... " + Log.RESET);
-        compressor.compress(true);
-        Log.println(Log.GREEN + "\ndone" + Log.RESET);
+        String file = "File2.html";
+        int sBuffS = 32768; //32768 max
+        int lBuffS = 258;   //258
+        
+        LzssCompress comp = new LzssCompress(file,sBuffS, lBuffS);
+        Log.print(Log.GREEN + "compressing... " + Log.RESET);
+        comp.compress();
+        Log.println(Log.GREEN + " done" + Log.RESET);
 
+        LzssDecompress decomp = new LzssDecompress(file + ".lzss", file + ".out", sBuffS + lBuffS);
+        Log.print(Log.GREEN + "decompressing..." + Log.RESET);
+        decomp.decompress();
+        Log.println(Log.GREEN + " done" + Log.RESET);
         
-        
+        try{
+            if(compareFiles(Path.of(file), Path.of(file + ".out"))) Log.println(Log.GREEN + "\nFiles match!\n" + Log.RESET);
+            else System.out.println("\nError, files don`t match!\n");
+        } catch(IOException e){System.out.println(e);} 
     }
 // --------------------------------------------------------------------------------------
-// Log
-// --------------------------------------------------------------------------------------
-    public static class Log{
-        public static final String RESET = "\033[0m";  // Text Reset
-        public static final String GREEN = "\033[1;32m";   // GREEN
-
-        public static void println(Object object){
-            System.out.println(object);
-        }
-        public static void print(Object object){
-            System.out.print(object);
-        }
-    }
-// --------------------------------------------------------------------------------------
-// Sliding window
+// LZSS compressor
 // uses ByteRingBuffer, 
 // --------------------------------------------------------------------------------------
     public static class LzssCompress{
         ByteRingBuffer searchBuffer;
         ByteRingBuffer lookAheadBuffer;
-        int cursor = 0;
         FileInputStream inputf;
         FileOutputStream outputf;
 
@@ -43,25 +40,17 @@ public class LzssTest {
             this.lookAheadBuffer = new ByteRingBuffer(lookAheadBufferSize);
             try{
                 inputf = new FileInputStream(inputFile);
-                int data = inputf.read();
-                while(!lookAheadBuffer.isFull() && data != -1){
-                    lookAheadBuffer.add((byte)(data & 0xFF));
+                int data;
+                while(!lookAheadBuffer.isFull()){
                     data = inputf.read();
+                    if(data == -1) break;
+                    lookAheadBuffer.add((byte)(data & 0xFF));
                 }
-            }
-            catch (IOException e){
-                System.out.println("Couldn`t open file" + inputFile);
-            }
-            catch (Exception e){
-                System.out.println(e);
-            }
-            try{
-                outputf = new FileOutputStream(inputFile + ".lzss", false);
-            }
-            catch (FileNotFoundException e){
-                System.out.println("Couldn`t create lzss temp file");
+            } catch (IOException e){System.out.println("Couldn`t open file" + inputFile);}
+            catch (Exception e){System.out.println(e);}
 
-            }     
+            try{outputf = new FileOutputStream(inputFile + ".lzss", false);}
+            catch (FileNotFoundException e){System.out.println("Couldn`t create lzss temp file");}     
         }
         // iet cauri failam, kamēr sasniedz beigas
         public void compress(){
@@ -69,7 +58,7 @@ public class LzssTest {
         }
 
         public void compress(boolean printToConsole){
-            int[] match; //len, offset
+            int[] match; //[len, offset]
             try{
                 while(!lookAheadBuffer.isEmpty()){
                     match = getLongestMatch();
@@ -88,10 +77,9 @@ public class LzssTest {
                         outputf.write((byte)(match[1] & 0xFF));                        
                     }
                 }
-            }
-            catch(IOException e){
-                System.out.println("Couldn`t write to lzss temp file");
-            }
+                outputf.close();
+                inputf.close();
+            } catch(IOException e){System.out.println(e);}
         }
         //buferu pārkopēšana un jaunu simbola ievietošana
         private void shiftBuffers(int pos){
@@ -160,7 +148,65 @@ public class LzssTest {
         }
 
     }
+// --------------------------------------------------------------------------------------
+// LZSS decompressor
+// uses ByteRingBuffer
+// --------------------------------------------------------------------------------------
+    public static class LzssDecompress{
+        ByteRingBuffer inputBuffer;
+        FileInputStream inputf;
+        FileOutputStream outputf;
 
+        LzssDecompress(String inputFile, String outputFile, int BufferSize){
+            this.inputBuffer = new ByteRingBuffer(BufferSize);
+            try{
+                inputf = new FileInputStream(inputFile);
+            } catch(IOException e) {
+                System.out.println("Couldn`t open file " + inputFile);
+            }
+            try{
+                outputf = new FileOutputStream(outputFile, false);
+            } catch(FileNotFoundException e){
+                System.out.println("Couldn`t create file " + outputFile);
+            }
+        }
+
+        public void decompress(){
+            int length, offset;
+            try{
+                int nextByte = inputf.read();
+                while(nextByte != -1){
+                    if(nextByte > 0){ // this is reference
+                        length = ((nextByte << 8) + inputf.read()) & 0xFFF;
+                        offset = inputBuffer.size() - (((inputf.read() << 8) + inputf.read()) & 0xFFFF);
+                        for(int i = offset; i < (offset + length); i ++){
+                            
+                            try{outputf.write(inputBuffer.get(i));}
+                            catch(IOException e){System.out.println(e);}
+
+                            if(inputBuffer.isFull()){
+                                inputBuffer.add(inputBuffer.get(i));
+                                i--;
+                                offset--;
+                            } else{
+                                inputBuffer.add(inputBuffer.get(i));
+                            }
+                            //Log.print((char)inputBuffer.get(i));
+                        }
+                        //Log.print("<" + length + ":" + offset + ">");
+                    } else { // this literal
+                        inputBuffer.add((byte)(inputf.read() & 0xFF));
+                        //Log.print((char)inputBuffer.get(inputBuffer.size()-1));
+                        try{outputf.write(inputBuffer.get(inputBuffer.size()-1));}
+                        catch(IOException e){System.out.println(e);}
+                    }
+                    nextByte = inputf.read();
+                }
+                inputf.close();;
+                outputf.close();
+            } catch(IOException e){System.out.println(e);}
+        }
+    }
 // --------------------------------------------------------------------------------------
 // Ring Buffer
 // --------------------------------------------------------------------------------------
@@ -242,7 +288,7 @@ public class LzssTest {
             for(int i = 0; i < size; i++){
                 try{
                     byte ch = this.get(i);
-                    System.out.print((char)ch);
+                    System.out.print((char)ch + "");
                     //if(i < size - 1) System.out.print(", ");
                 }
                 catch (Exception e){
@@ -252,5 +298,25 @@ public class LzssTest {
             System.out.println();
         }
     }
+// --------------------------------------------------------------------------------------
+// Log (functions for debug printing)
+// --------------------------------------------------------------------------------------
+public static class Log{
+    public static final String RESET = "\033[0m";  // Text Reset
+    public static final String GREEN = "\033[1;32m";   // GREEN
 
+    public static void println(Object object){
+        System.out.println(object);
+    }
+    public static void print(Object object){
+        System.out.print(object);
+    }
 }
+// --------------------------------------------------------------------------------------
+// Utilities
+// --------------------------------------------------------------------------------------
+    private static boolean compareFiles(Path file1, Path file2) throws IOException {
+        return Files.mismatch(file1, file2) == -1;
+    }
+}
+
