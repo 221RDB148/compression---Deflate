@@ -4,9 +4,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class Main {
+public class LzssTest {
     public static void main(String[] args) throws Exception {
-        String file = "File2.html";
+        String file = "File3.html";
         int sBuffS = 32768; //32768 max
         int lBuffS = 258;   //258
         
