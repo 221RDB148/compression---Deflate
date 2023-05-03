@@ -1,16 +1,20 @@
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 
 public class HuffmanDeflate {
     
-    public static void main(String[] args) {
-        Scanner input = new Scanner(System.in);
-        
-        System.out.print("Enter a string of symbols to encode: ");
-        String symbols = input.nextLine();
-        
+    public static void main(String[] args) throws IOException {
+        FileInputStream in = new FileInputStream("text.txt");
         Map<Character, Integer> freqMap = new HashMap<>();
-        for (char c : symbols.toCharArray()) {
-            freqMap.put(c, freqMap.getOrDefault(c, 0) + 1);
+
+        int data;
+        char ch;
+        while((data = in.read()) != -1){ //put tuff in Hashmap
+            data = data & 0xFF;
+            ch = (char)data;
+            freqMap.put(ch, freqMap.getOrDefault(ch, 0) + 1);
         }
         
         PriorityQueue<Node> pq = new PriorityQueue<>();
@@ -38,6 +42,7 @@ public class HuffmanDeflate {
             String code = codes.get(c);
             System.out.println(c + "\t" + freq + "\t\t" + code);
         }
+        in.close();
     }
     
     private static void generateCodes(Node node, String code, Map<Character, String> codes) {

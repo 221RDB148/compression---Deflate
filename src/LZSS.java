@@ -4,40 +4,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class LzssTest {
+public class LZSS {
     public static void main(String[] args) throws Exception {
         String file = "File1.html";
-        // String file = "output1.txt";
-        // String file = "text.txt";
-        // String file = "output.txt";
 
-        int sBuffS = 32768; //32768 max
-        int lBuffS = 258;   //258
-        
-        // LzssCompress comp = new LzssCompress(file,sBuffS, lBuffS);
-        // Log.print(Log.GREEN + "compressing... " + Log.RESET);
-        // comp.compress(true);
-        // Log.println(Log.GREEN + " done" + Log.RESET);
-
-        // LzssDecompress decomp = new LzssDecompress(file + ".lzss", file + ".out", sBuffS + lBuffS);
-        // Log.print(Log.GREEN + "decompressing..." + Log.RESET);
-        // decomp.decompress();
-        // Log.println(Log.GREEN + " done" + Log.RESET);
-
-
-
-        //////edited
-        LzssCompress comp = new LzssCompress("text.txt",sBuffS, lBuffS);
+        LzssCompress comp = new LzssCompress("text.txt", "text.lzss");
         Log.print(Log.GREEN + "compressing... " + Log.RESET);
         comp.compress(true);
         Log.println(Log.GREEN + " done" + Log.RESET);
-        //////edited
-
-        // LzssDecompress decomp = new LzssDecompress("output1.txt", "OUT.txt", sBuffS + lBuffS);
-        // Log.print(Log.GREEN + "decompressing..." + Log.RESET);
-        // decomp.decompress();
-        // Log.println(Log.GREEN + " done" + Log.RESET);
-        ////edited
 
         
         try{
@@ -55,9 +29,9 @@ public class LzssTest {
         FileInputStream inputf;
         FileOutputStream outputf;
 
-        LzssCompress(String inputFile, int searchBufferSize, int lookAheadBufferSize){
-            this.searchBuffer = new ByteRingBuffer(searchBufferSize);
-            this.lookAheadBuffer = new ByteRingBuffer(lookAheadBufferSize);
+        LzssCompress(String inputFile, String outputFile){
+            this.searchBuffer = new ByteRingBuffer(32768);
+            this.lookAheadBuffer = new ByteRingBuffer(258);
             try{
                 inputf = new FileInputStream(inputFile);
                 int data;
@@ -69,7 +43,7 @@ public class LzssTest {
             } catch (IOException e){System.out.println("Couldn`t open file" + inputFile);}
             catch (Exception e){System.out.println(e);}
 
-            try{outputf = new FileOutputStream(inputFile + ".lzss", false);}
+            try{outputf = new FileOutputStream(outputFile, false);}
             catch (FileNotFoundException e){System.out.println("Couldn`t create lzss temp file");}     
         }
         // iet cauri failam, kamēr sasniedz beigas
@@ -178,8 +152,8 @@ public class LzssTest {
         FileInputStream inputf;
         FileOutputStream outputf;
 
-        LzssDecompress(String inputFile, String outputFile, int BufferSize){
-            this.inputBuffer = new ByteRingBuffer(BufferSize);
+        LzssDecompress(String inputFile, String outputFile){
+            this.inputBuffer = new ByteRingBuffer(33026);
             try{
                 inputf = new FileInputStream(inputFile);
             } catch(IOException e) {

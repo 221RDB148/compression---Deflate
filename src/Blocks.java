@@ -1,7 +1,10 @@
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 //pagaidām programma tikai saspiež 1.blokā (bez lzss) tikai parastu pliku tekstu(piem text.txt) 
@@ -9,16 +12,223 @@ import java.util.LinkedList;
 
 public class Blocks {
     static Deque<String> buffer = new LinkedList<>();
-    static String filename = "File2.html.lzss";
-    // static String filename = "File1.html";
+    // static String filename = "File3.html.lzss";
+    static String filename = "compress.txt.lzss";
+    static String Input_name = "File1.html.lzss";
+    static String Output_name = "output1.txt";
 	static int len = 0;
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        // Block0();
-        Compress_with_Block1("File3.html.lzss");
+        // System.out.println(extraB_forDistance(6,8,9,513));
+        Compress_using_Block1(Input_name);
+        
+        // Decompress_using_Block1(filename + ".lzss.bl1");
+        // Decompress_using_Block1("test.txt");
 
         // int length = 258;
-        // System.out.println(getLength(length));
+        // System.out.print(getLength(length));
+    }
+
+    public static void Decompress_using_Block1(String fileName) {
+        System.out.print("decoding with block1 ...\n");
+        try (DataInputStream in = new DataInputStream(new FileInputStream("test.txt"))) {
+            DataOutputStream out = new DataOutputStream(new FileOutputStream("output1.lzss"));
+            buffer.clear();
+            String READ;
+            String Bcode;
+            int Bcode_value;
+            int data = 0;
+
+            // //BLOCK HEADER
+            // Bcode = Integer.toBinaryString(in.read() & 0xFF);
+            // if (Bcode.length() != 8){//pievieno trukstosas nulles skaitlim
+            //     for (int j = Bcode.length(); j<8;j++) Bcode = "0" + Bcode;
+            // }
+            // for(int i=0; i<8; i++) { //add current number to buffer
+            //     buffer.add(String.valueOf(Bcode.charAt(i)));
+            //     len++;
+            // }
+            // for(int i=0; i<3; i++){
+            //     if(buffer.isEmpty()) break;
+            //     System.out.print(buffer.remove());  
+            //     len--;
+            // }
+
+            READ = Integer.toBinaryString(in.readByte() & 0xFF); //read charecter from file
+            if (READ.length() != 8){//add zeros to binary for length to be 8-bit
+                for (int j = READ.length(); j<8;j++) READ = "0" + READ;
+            }
+            for(int i=0; i<READ.length(); i++) { //add current number to buffer
+                buffer.add(String.valueOf(READ.charAt(i)));
+                len++;
+            }
+            while((data = in.readByte()) != -1){
+
+                READ = Integer.toBinaryString(data & 0xFF); //read charecter from file
+                if (READ.length() != 8){//add zeros to binary for length to be 8-bit
+                    for (int j = READ.length(); j<8;j++) READ = "0" + READ;
+                }
+                for(int i=0; i<READ.length(); i++) { //add current number to buffer
+                    buffer.add(String.valueOf(READ.charAt(i)));
+                    len++;
+                }
+
+                //check current charecter
+                Bcode = "";
+                for(int i=0; i<8; i++) Bcode = Bcode + buffer.remove(); len--;
+                Bcode_value = Integer.parseInt(Bcode,2);
+                // System.out.println(Bcode_value);
+                // System.out.print("bcode="+Bcode+" value="+Bcode_value);
+                System.out.print("     real="+READ+"   ");
+
+                // outputCode = getDecodingValue(Bcode_value);
+
+
+                if(Bcode_value < 48){ // 7-bit LENGTH
+                    buffer.addFirst(Character.toString(Bcode.charAt(7)));
+                    len++;
+                    Bcode = Bcode.substring(0,7);
+                    Bcode_value = Integer.parseInt(Bcode,2);
+                    String extra;
+                   
+                    int inc;
+                    switch (Bcode_value){
+                        case 0:
+                            break;
+                        case 1,2,3,4,5,6,7,8:
+                            System.out.print("<"+(Bcode_value+2)+":");
+                            out.writeShort(61440 + Bcode_value+2);
+                            break;
+                        case 9,10,11,12:
+                            inc = Bcode_value - 9;
+                            Bcode_value = 11+(2*inc) + Integer.parseInt(buffer.remove(),2);
+                            len--;
+                            System.out.print("<"+Bcode_value+":");
+                            out.writeShort(61440 + Bcode_value);
+                            break;
+                        case 13,14,15,16:
+                            inc = Bcode_value - 13;
+                            extra = buffer.remove() + buffer.remove();
+                            len-=2;
+                            Bcode_value = 19+(4*inc) + Integer.parseInt(extra,2);
+                            System.out.print("<"+Bcode_value+":");
+                            out.writeShort(61440 + Bcode_value);
+                            break;
+                        case 17,18,19,20:
+                            inc = Bcode_value - 17;
+                            extra = buffer.remove() + buffer.remove() + buffer.remove();
+                            len-=3;
+                            Bcode_value = 35+(8*inc) + Integer.parseInt(extra,2);
+                            System.out.print("<"+Bcode_value+":");
+                            out.writeShort(61440 + Bcode_value);
+                            break;
+                        case 31,32,33:
+                            inc = Bcode_value - 31;
+                            extra=buffer.remove()+buffer.remove()+buffer.remove()+buffer.remove();
+                            len-=4;
+                            Bcode_value = 67+(16*inc) + Integer.parseInt(extra,2);
+                            System.out.print("<"+Bcode_value+":");
+                            out.writeShort(61440 + Bcode_value);
+                            break;
+                    }
+
+                    //distance
+                    READ = Integer.toBinaryString(in.read() & 0xFF); //read charecter from file
+                    if (READ.length() != 8){//add zeros to binary for length to be 8-bit
+                        for (int j = READ.length(); j<8;j++) READ = "0" + READ;
+                    }          
+                    for(int i=0; i<8; i++) { //add current number to buffer
+                        buffer.add(String.valueOf(READ.charAt(i)));
+                        len++;
+                    }
+                    
+                    Bcode = "";
+                    for(int i=0; i<5; i++) Bcode = Bcode + buffer.remove();len--;
+                    Bcode_value = Integer.parseInt(Bcode,2);
+                    extra = "";
+
+                    //distance
+                    out.writeShort(FixedHuffmanToDistance(Bcode_value));
+                    continue;
+                }
+                
+                if(Bcode_value < 192){// 8-bit LITERAL
+                    System.out.println("ch="+(char)(Bcode_value - 48));
+                    int value = Bcode_value - 48;
+                    out.writeShort(value);
+                    continue;
+                }
+
+                if(Bcode_value < 199){
+                    int inc;
+                    String extra;
+                    Bcode_value = Bcode_value - 144;
+                    //length
+                    switch(Bcode_value){
+                        case 192:
+                            extra=buffer.remove()+buffer.remove()+buffer.remove()+buffer.remove();
+                            len-=4;
+                            Bcode_value = 115 + Integer.parseInt(extra,2);
+                            System.out.print((Bcode_value)+">");
+                            out.writeShort(61440 + Bcode_value);
+                            break;
+                        case 193,194,195,196:
+                            inc = Bcode_value - 193;
+                            extra=buffer.remove()+buffer.remove()+buffer.remove()+buffer.remove()+buffer.remove();
+                            len-=4;
+                            Bcode_value = 131+(32*inc) + Integer.parseInt(extra,2);
+                            System.out.print((Bcode_value)+">");
+                            out.writeShort(61440 + Bcode_value);
+                            break;
+                        case 197:
+                            out.writeShort(258);
+                            System.out.print(258+">  (longest there is)");
+                            break;
+                    }
+                    //distance
+                    Bcode = "";
+                    for(int i=0; i<5; i++) Bcode = Bcode + buffer.remove(); len--;
+                    Bcode_value = Integer.parseInt(Bcode,2);
+                    extra = "";
+                    out.writeShort(FixedHuffmanToDistance(Bcode_value));
+                    continue;
+                }
+            
+                if(Bcode_value < 256){// 9-bit LITERAL
+                    READ = buffer.remove();
+                    len--;
+                    Bcode = Bcode + READ;
+                    Bcode_value = Integer.parseInt(Bcode,2);
+                    Bcode_value = Bcode_value - 256;
+                    System.out.println("\nERROR HERE:"+Bcode_value+"\n");
+                    out.writeShort(Bcode_value);
+
+                }
+            }
+
+            in.close();
+            out.close();
+        } catch (NumberFormatException | IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.print("\ndecompressed ...");
+        System.out.println("dump buffer:");
+
+        
+        print();
+
+        while(!buffer.isEmpty()){
+            String str = "";
+            for(int i=0; i<8; i++){
+                str = str + buffer.remove();
+            }
+            for(int i=str.length(); i<8; i++){
+                str = "0" + str;
+            }
+            System.out.println("char " + Integer.parseInt(str,2) + " "+ (char)Integer.parseInt(str,2));
+            
+        }
     }
 
     public static void Block0() throws IOException {
@@ -34,25 +244,36 @@ public class Blocks {
         
         in.close();
         out.close();
-        System.out.println("(bl0)compressed in file: \""+filename+".bl\"");
+        System.out.print("(bl0)compressed in file: \""+filename+".bl\"");
     }
 
-    public static void Compress_with_Block1(String fileName) throws IOException, InterruptedException {
-        System.out.println("computing block1");
-        FileInputStream in = new FileInputStream(fileName);
-        FileOutputStream out = new FileOutputStream(fileName + ".bl1");
+    public static void print(){
+        Iterator<String> iterator = buffer.iterator();
+        System.out.println();
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+        System.out.println();
+    }
+
+    public static void Compress_using_Block1(String fileName) throws IOException, InterruptedException {
+        buffer.clear();
+        System.out.println("encoding with block1 ...");
+        FileInputStream in = new FileInputStream("text.");
+        FileOutputStream out = new FileOutputStream("text.txt.lzss.bl1");
 
         int data = 0;
         String ObCode;
         int val = 0;
 
-        Write("001"); //block header
+        // Write("001"); //block header
 
         while((data = in.read()) != -1){
             //check if LITERAL or length
             if((data & 0xFF) == 0){                    //LITERAL
                 data = in.read();
                 ObCode = getFixedHuffman(data);
+                System.out.print((char)data);
                 //before output, make sure value is 8-bit
                 val = Write(ObCode);
                 if(val != -1) out.write(val);
@@ -61,9 +282,8 @@ public class Blocks {
             else {                                     //LENGTH
                 val = (data & 0xFF) << 8;
                 val += in.read() - 61440;
-                // System.out.print(val+"   ");
                 ObCode = getLengthFixedHuffman(val);
-                // System.out.print(ObCode + "<"+val+":");
+                System.out.print("<"+val+":");
                 
                 //before output, make sure value is 8-bit
                 val = Write(ObCode);
@@ -73,7 +293,7 @@ public class Blocks {
                 //                                     //DISTANCE
                 val = (in.read() & 0xFF) << 8;
                 val += (in.read() & 0xFF);
-                // System.out.println(val+">");
+                System.out.print(val+">");
                 ObCode = getDISTANCEfixedHuffman(val);
 
                 //before output, make sure value is 8-bit
@@ -91,7 +311,17 @@ public class Blocks {
         
         in.close();
         out.close();
-        System.out.println("compressed in file: \""+filename+".bl\"");
+
+        System.out.print("\ncompressed(still stuff in buffer"+len+")\n");
+        
+        while (len > 8){
+            String buffString = "";
+            for(int i=0; i<8; i++){
+                buffString = buffString + buffer.remove();
+                len--;
+            }
+            System.out.println((char)Integer.parseInt(buffString,2));
+        }
         // TODO:
         // - buferī iespējams ir vēl kautkas (to vajag sakt outputot, kad rakstis nakamo bloku)
         // - jauztaisa sistema, kura pievienos lieko bufferi, ja ir pedejais bloks
@@ -100,7 +330,10 @@ public class Blocks {
     public static String getDISTANCEfixedHuffman(int data) {
         String bin = ""; 
         if(data < 5) {
-            bin = Integer.toBinaryString(data-1);
+            bin = Integer.toBinaryString(data);
+
+            int a = Integer.parseInt(bin) - 1;
+            bin = Integer.toBinaryString(a);
             if (bin.length() != 5){
                 for (int j = bin.length(); j<5;j++) bin = "0" + bin;
             }
@@ -132,27 +365,31 @@ public class Blocks {
         if(data < 12289) return extraB_forDistance(26,12, data,8193);
         if(data < 16385) return extraB_forDistance(27,12, data,12289);
         if(data < 24577) return extraB_forDistance(28,13, data,16385);
-        if(data < 32768) return extraB_forDistance(29,13, data,24577);
+        if(data < 32769) return extraB_forDistance(29,13, data,24577);
         
         
-        System.out.println("ERROR: distance \""+data+"\" not found");
+        System.out.print("ERROR: distance \""+data+"\" not found");
         return "";
     }
 
     private static String extraB_forDistance(int bin_v,int bin_len, int data, int start){
         String bin = Integer.toBinaryString(bin_v);
-        if (bin.length() != 5){
-            for (int j = bin.length(); j<5;j++) bin = "0" + bin;
-        }
-        
 
-        String extra = Integer.toBinaryString(data - start) ;
-        if (extra.length() != bin_len){
-            for (int j = extra.length(); j<bin_len;j++) extra = "0" + extra;
+        for (int j = 0; j<5;j++) {
+            if (bin.length() != 5){
+                bin = "0" + bin;
+            }
         }
+        String extra = Integer.toBinaryString(data - start);
+        for (int j = 0; j<bin_len;j++) {
+            if (extra.length() != bin_len){
+                extra = "0" + extra;
+            }
+        }
+            
         
-        // System.out.println("distance bin="+bin + " "+extra);
-        return bin + extra;
+        // System.out.print("distance bin="+bin + " "+extra);
+        return (bin + extra);
     }
 
     public static String getLengthFixedHuffman(int data) {
@@ -231,7 +468,7 @@ public class Blocks {
 
         if(data == 258) return getFixedHuffman(285);//length 285
 
-        System.out.println("ERROR: no such length=\""+data+"\"");
+        System.out.print("ERROR: no such length=\""+data+"\"");
         return "";
     }
    
@@ -319,5 +556,192 @@ public class Blocks {
 		//you can only write 8-bit value to file, so if not 8-bits, return-1
         return -1; 
 	}
+    public static int FixedHuffmanToDistance(int Bcode_value){
+        String extra = "";
+        int inc;
+
+        switch (Bcode_value){
+            case 1,2,3:
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 4,5://1-bit extra
+                inc = Bcode_value - 4;
+                extra = buffer.remove();
+                len--;
+                Bcode_value = 5 + (2*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 6,7://2-bit extra
+                inc = Bcode_value - 6;
+                extra = buffer.remove() + buffer.remove();
+                len--;len--;
+                Bcode_value = 9 + (4*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 8,9://3-bit extra
+                inc = Bcode_value - 8;
+                extra = buffer.remove() + buffer.remove() + buffer.remove();
+                len-=3;
+                Bcode_value = 17 + (8*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 10,11://4-bit extra
+                inc = Bcode_value - 10;
+                for(int i=0; i<4; i++) extra = extra + buffer.remove();
+                len-=4;
+                Bcode_value = 33 + (16*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 12,13://5-bit extra
+                inc = Bcode_value - 12;
+                for(int i=0; i<5; i++) extra = extra + buffer.remove();
+                len-=5;
+                Bcode_value = 65 + (32*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 14,15://6-bit extra
+                inc = Bcode_value - 14;
+                for(int i=0; i<6; i++) extra = extra + buffer.remove();
+                len-=6;
+                Bcode_value = 129 + (64*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 16,17://7-bit extra
+                inc = Bcode_value - 16;
+                for(int i=0; i<7; i++) extra = extra + buffer.remove();
+                len-=7;
+                Bcode_value = 257 + (128*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 18,19://8-bit extra
+                inc = Bcode_value - 18;
+                for(int i=0; i<8; i++) extra = extra + buffer.remove();
+                len-=8;
+                Bcode_value = 257 + (256*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 20,21://9-bit extra
+                inc = Bcode_value - 20;
+                for(int i=0; i<9; i++) extra = extra + buffer.remove();
+                len-=9;Bcode_value = 1025 + (512*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 22,23://10-bit extra
+                inc = Bcode_value - 22;
+                for(int i=0; i<10; i++) extra = extra + buffer.remove();
+                len-=10;
+                Bcode_value = 2049 + (1024*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 24,25://11-bit extra
+                inc = Bcode_value - 24;
+                for(int i=0; i<11; i++) extra = extra + buffer.remove();
+                len-=11;
+                Bcode_value = 4897 + (2048*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 26,27://12-bit extra
+                inc = Bcode_value - 26;
+                for(int i=0; i<12; i++) extra = extra + buffer.remove();
+                len-=12;
+                Bcode_value = 8193 + (4096*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+            case 28,29://13-bit extra
+                inc = Bcode_value - 28;
+                for(int i=0; i<13; i++) extra = extra + buffer.remove();
+                len-=13;
+                Bcode_value = 16385 + (8192*inc) + Integer.parseInt(extra,2);
+                System.out.print((Bcode_value)+">");
+                return (Bcode_value);
+        }
+        
+        // switch (Bcode_value){
+        //     case 1,2,3,4:
+        //         System.out.print((Bcode_value+1)+">");
+        //         return (Bcode_value+1);
+        //     case 5,6://1-bit extra
+        //         inc = Bcode_value - 4;
+        //         extra = buffer.remove();
+        //         Bcode_value = 5 + (2*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 7,8://2-bit extra
+        //         inc = Bcode_value - 6;
+        //         extra = buffer.remove() + buffer.remove();
+        //         Bcode_value = 9 + (4*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 9,10://3-bit extra
+        //         inc = Bcode_value - 8;
+        //         extra = buffer.remove() + buffer.remove() + buffer.remove();
+        //         Bcode_value = 17 + (8*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 11,12://4-bit extra
+        //         inc = Bcode_value - 10;
+        //         for(int i=0; i<4; i++) extra = extra + buffer.remove();
+        //         Bcode_value = 33 + (16*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 13,14://5-bit extra
+        //         inc = Bcode_value - 12;
+        //         for(int i=0; i<5; i++) extra = extra + buffer.remove();
+        //         Bcode_value = 65 + (32*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 15,16://6-bit extra
+        //         inc = Bcode_value - 14;
+        //         for(int i=0; i<6; i++) extra = extra + buffer.remove();
+        //         Bcode_value = 129 + (64*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 17,18://7-bit extra
+        //         inc = Bcode_value - 16;
+        //         for(int i=0; i<7; i++) extra = extra + buffer.remove();
+        //         Bcode_value = 257 + (128*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 19,20://8-bit extra
+        //         inc = Bcode_value - 18;
+        //         for(int i=0; i<8; i++) extra = extra + buffer.remove();
+        //         Bcode_value = 257 + (256*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 21,22://9-bit extra
+        //         inc = Bcode_value - 20;
+        //         for(int i=0; i<9; i++) extra = extra + buffer.remove();
+        //         Bcode_value = 1025 + (512*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 23,24://10-bit extra
+        //         inc = Bcode_value - 22;
+        //         for(int i=0; i<10; i++) extra = extra + buffer.remove();
+        //         Bcode_value = 2049 + (1024*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 25,26://11-bit extra
+        //         inc = Bcode_value - 24;
+        //         for(int i=0; i<11; i++) extra = extra + buffer.remove();
+        //         Bcode_value = 4897 + (2048*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 27,28://12-bit extra
+        //         inc = Bcode_value - 26;
+        //         for(int i=0; i<12; i++) extra = extra + buffer.remove();
+        //         Bcode_value = 8193 + (4096*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        //     case 29,30://13-bit extra
+        //         inc = Bcode_value - 28;
+        //         for(int i=0; i<13; i++) extra = extra + buffer.remove();
+        //         Bcode_value = 16385 + (8192*inc) + Integer.parseInt(extra,2);
+        //         System.out.print((Bcode_value)+">");
+        //         return (Bcode_value);
+        // }
+        
+        System.err.print("ERROR DISTANCE WRONG="+Bcode_value);
+        return -1;
+    }
 
 }

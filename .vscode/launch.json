@@ -1,0 +1,120 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "LzssTest",
+            "request": "launch",
+            "mainClass": "LzssTest",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Final",
+            "request": "launch",
+            "mainClass": "Final",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "HuffmanG",
+            "request": "launch",
+            "mainClass": "HuffmanG",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Huffman5",
+            "request": "launch",
+            "mainClass": "Huffman5",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Huffman",
+            "request": "launch",
+            "mainClass": "Huffman",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Huffman10",
+            "request": "launch",
+            "mainClass": "Huffman10",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Huffman4",
+            "request": "launch",
+            "mainClass": "Huffman4",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Huffman3",
+            "request": "launch",
+            "mainClass": "Huffman3",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Huffman2",
+            "request": "launch",
+            "mainClass": "Huffman2",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "HuffmanDeflate",
+            "request": "launch",
+            "mainClass": "HuffmanDeflate",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "OOP",
+            "request": "launch",
+            "mainClass": "OOP",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Run",
+            "request": "launch",
+            "mainClass": "Run",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "test",
+            "request": "launch",
+            "mainClass": "test",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "LzssTest_copy",
+            "request": "launch",
+            "mainClass": "LzssTest_copy",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Pa_jaunam",
+            "request": "launch",
+            "mainClass": "Pa_jaunam",
+            "projectName": "compression---Deflate_6b0a90a0"
+        }
+    ]
+}

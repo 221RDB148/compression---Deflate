@@ -4,46 +4,42 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class LzssTest {
+public class LzssTest_copy {
     public static void main(String[] args) throws Exception {
-        String file = "File1.html";
-        // String file = "output1.txt";
+        String file = "File2.html";
         // String file = "text.txt";
-        // String file = "output.txt";
 
         int sBuffS = 32768; //32768 max
         int lBuffS = 258;   //258
         
-        // LzssCompress comp = new LzssCompress(file,sBuffS, lBuffS);
-        // Log.print(Log.GREEN + "compressing... " + Log.RESET);
-        // comp.compress(true);
-        // Log.println(Log.GREEN + " done" + Log.RESET);
-
-        // LzssDecompress decomp = new LzssDecompress(file + ".lzss", file + ".out", sBuffS + lBuffS);
-        // Log.print(Log.GREEN + "decompressing..." + Log.RESET);
-        // decomp.decompress();
-        // Log.println(Log.GREEN + " done" + Log.RESET);
-
-
 
         //////edited
-        LzssCompress comp = new LzssCompress("text.txt",sBuffS, lBuffS);
-        Log.print(Log.GREEN + "compressing... " + Log.RESET);
-        comp.compress(true);
+        LzssCompress comp = new LzssCompress(file, sBuffS, lBuffS);
+        Log.print(Log.GREEN + "compressing...\n" + Log.RESET);
+        comp.compress();
+        Log.println(Log.GREEN + "\ndone" + Log.RESET);
+        //////edited
+        
+        // Pa_jaunam.CompressWithBlock1(file + ".lzss", "output1.txt",0);
+        // Pa_jaunam.DecompressWithBlock1("output1.txt", "output2.txt",0);
+        OOP.Compress.compressWithBlock1(file + ".lzss", "output1.txt",0);
+        OOP.Decompress.decompressWithBlock1("output1.txt", "output2.txt",2);
+
+
+        LzssDecompress decomp = new LzssDecompress("output2.txt", "OUT.txt", sBuffS + lBuffS);
+        Log.print(Log.GREEN + "decompressing..." + Log.RESET);
+        decomp.decompress();
         Log.println(Log.GREEN + " done" + Log.RESET);
-        //////edited
-
-        // LzssDecompress decomp = new LzssDecompress("output1.txt", "OUT.txt", sBuffS + lBuffS);
-        // Log.print(Log.GREEN + "decompressing..." + Log.RESET);
-        // decomp.decompress();
-        // Log.println(Log.GREEN + " done" + Log.RESET);
         ////edited
+        
 
         
         try{
-            if(compareFiles(Path.of(file), Path.of(file + ".out"))) Log.println(Log.GREEN + "\nFiles match!\n" + Log.RESET);
+            if(compareFiles(Path.of(file), Path.of("OUT.txt"))) Log.println(Log.GREEN + "\nFiles match!\n" + Log.RESET);
             else System.out.println("\nError, files don`t match!\n");
-        } catch(IOException e){System.out.println(e);} 
+        } catch(IOException e){System.out.println(e);}
+        System.out.print("Original_"); Main.size(file);
+        System.out.print("Compress_"); Main.size("output1.txt");
     }
 // --------------------------------------------------------------------------------------
 // LZSS compressor
@@ -87,14 +83,15 @@ public class LzssTest {
                         outputf.write(0);
                         outputf.write(lookAheadBuffer.get(0));
                         shiftBuffers(1);
-                    } else {
+                    } else {//Log.print(Log.GREEN + "<" + match[0] + ":" + match[1] + ">" + Log.RESET);
                         if(printToConsole) Log.print(Log.GREEN + "<" + match[0] + ":" + match[1] + ">" + Log.RESET);
+                        // System.out.println("<" + match[0] + ":" + match[1] + ">");
                         shiftBuffers(match[0]);
                         int lengthCode = 0xF000 + match[0];
                         outputf.write((byte)((lengthCode>>8) & 0xFF));
                         outputf.write((byte)(lengthCode & 0xFF));
                         outputf.write((byte)((match[1]>>8) & 0xFF));
-                        outputf.write((byte)(match[1] & 0xFF));   
+                        outputf.write((byte)(match[1] & 0xFF)); 
                                              
                     }
                 }
@@ -291,10 +288,10 @@ public class LzssTest {
         }
 
         public void printHeader(){
-            System.out.println("\tCapacity: " + capacity);
-            System.out.println("\tSize: " + size);
-            System.out.println("\tHead: " + head);
-            System.out.print("\tTail: " + tail + "\n");
+            // System.out.println("\tCapacity: " + capacity);
+            // System.out.println("\tSize: " + size);
+            // System.out.println("\tHead: " + head);
+            // System.out.print("\tTail: " + tail + "\n");
             // for(int i = 0; i < size; i++){
             //     try{
             //         System.out.print(this.get(i));
@@ -310,7 +307,7 @@ public class LzssTest {
             for(int i = 0; i < size; i++){
                 try{
                     byte ch = this.get(i);
-                    System.out.print((char)ch + "");
+                    // System.out.print((char)ch + "");
                     //if(i < size - 1) System.out.print(", ");
                 }
                 catch (Exception e){
@@ -341,4 +338,3 @@ public static class Log{
         return Files.mismatch(file1, file2) == -1;
     }
 }
-

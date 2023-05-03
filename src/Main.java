@@ -55,23 +55,16 @@ public class Main {
 	}
 
 	public static void comp(String sourceFile, String resultFile) {
-        encodeLZ77(sourceFile);
+        LZSS.LzssCompress comp = new LZSS.LzssCompress(sourceFile, sourceFile + ".lzss");
+		comp.compress();
+		OOP.Compress.compressWithBlock1(sourceFile + ".lzss", resultFile,0);
 	}
 
 	public static void decomp(String sourceFile, String resultFile) {
-		// TODO: implement this method
+		OOP.Decompress.decompressWithBlock1(sourceFile, sourceFile + ".huff",0);
+		LZSS.LzssDecompress comp = new LZSS.LzssDecompress(sourceFile + ".huff", resultFile);
+		comp.decompress();
 	}
-	
-    public static void encodeLZ77(String sourceFile){
-        String s = sourceFile;
-        
-    }
-    public static void decodeLZ77(){
-    }
-    public static void encodeHuffman(){
-    }
-    public static void decodeHuffman(){
-    }
 	
     public static void size(String sourceFile) {
 		try {
