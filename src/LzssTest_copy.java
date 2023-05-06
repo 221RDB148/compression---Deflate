@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class LzssTest_copy {
     public static void main(String[] args) throws Exception {
-        String file = "File2.html";
+        String file = "File1.html";
         // String file = "text.txt";
 
         int sBuffS = 32768; //32768 max
@@ -22,7 +22,7 @@ public class LzssTest_copy {
         
         // Pa_jaunam.CompressWithBlock1(file + ".lzss", "output1.txt",0);
         // Pa_jaunam.DecompressWithBlock1("output1.txt", "output2.txt",0);
-        OOP.Compress.compressWithBlock1(file + ".lzss", "output1.txt",0);
+        OOP.Compress.compressWithBlock1(file + ".lzss", "output1.txt",2);
         OOP.Decompress.decompressWithBlock1("output1.txt", "output2.txt",2);
 
 

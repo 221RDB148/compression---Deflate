@@ -6,6 +6,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "OOP",
+            "request": "launch",
+            "mainClass": "OOP",
+            "projectName": "compression---Deflate_74eb914d"
+        },
+        {
+            "type": "java",
+            "name": "LzssTest_copy",
+            "request": "launch",
+            "mainClass": "LzssTest_copy",
+            "projectName": "compression---Deflate_74eb914d"
+        },
+        {
+            "type": "java",
             "name": "Main",
             "request": "launch",
             "mainClass": "Main",

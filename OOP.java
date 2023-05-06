@@ -54,11 +54,12 @@ public class OOP {
                 String outStr = "", bin_code = "";
 
                 while (true) {
+                    redData = 0;
                     bin_code = "";
                     //if buffer is too big -> output, begin loop again
-                    if(len>15){
+                    if(len>8) {
                         outStr = "";
-                        for(int i=0; i<16; i++){
+                        for(int i=0; i<8; i++){
                             outStr = outStr + buffer.remove();
                             len--;
                         }
@@ -66,7 +67,7 @@ public class OOP {
                         continue;
                     }
                     
-                    if((redData = in.read()) == -1){break;}
+                    if((redData = in.read()) == -1) { break; }
 
                     if (redData == 0){         //LITERAL
                         redData = (in.read()& 0xFF);
@@ -75,7 +76,9 @@ public class OOP {
                             bin_code = Integer.toBinaryString(redData);
                             if(bin_code.length()!=8) for(int i=bin_code.length(); i<8; i++) bin_code = "0" + bin_code;
                             Print(print,1,redData-48);//Print
-                            addToBuffer(bin_code);
+                            //System.out.print("\u001B[31m("+bin_code+")\u001B[0m");
+                            // addToBuffer(bin_code);
+                            out.writeByte(redData);
                         }
                         else if(redData < 256) {
                             redData = redData + 256;
@@ -99,16 +102,21 @@ public class OOP {
                         bin_code = getDISTANCEfixedHuffman(redData);
                         Print(print,3,redData);//Print
                         addToBuffer(bin_code);
+                        //System.out.print("\u001B[31m(R="+buffer.size()+";n="+len+")\u001B[0m");
                     }
                 }
-                addToBuffer("0000000");
+                //addToBuffer("0000000");
                 while(len>7){
                     outStr = "";
                     for(int i=0; i<8; i++) {outStr = outStr + buffer.remove();len--;}
-                    out.writeByte(Integer.parseInt(outStr));
+                    out.writeByte(Integer.parseInt(outStr,2));
                 }
-                out.writeByte(0);
-                outStr = "";
+                if(!buffer.isEmpty()){
+                    for(int i=0; i<len; i++) {outStr = outStr + buffer.remove();len--;}
+                    out.writeByte(Integer.parseInt(outStr,2));
+                }
+                
+                out.writeShort(0);
                 System.out.println("\u001B[33mCompressed in file \""+output+"\"\033[0m");
                 in.close();
                 out.close();
@@ -348,8 +356,9 @@ public class OOP {
                 String bin_code = "";
         
                 while(true){
-                    if (len<50){
-                        if((redData = in.read()) == -1){if(len<8){break;}
+                    if (len<32){
+                        if((redData = in.read()) == -1){
+                            if(len<7){break;}
                         } else {
                             addToBuffer8_bitVal(redData);
                             continue;
@@ -364,6 +373,7 @@ public class OOP {
 
                     if(redData > 47 & redData < 192){   //8-bit Literal
                         out.writeShort(redData-48);
+                        System.out.print("\u001B[31m("+bin_code+")\u001B[0m");
                         Print(print, 1, redData-48);//PRINT
                         continue;
                     }
@@ -383,15 +393,12 @@ public class OOP {
                         out.writeShort(61440 + redData);
                         Print(print, 2, redData);//PRINT
 
-
                         redData = decodeDistance();
                         out.writeShort(redData);
-                        //System.out.println(redData);////////////////////////////////
                         Print(print, 3, redData);//PRINT
+                        //System.out.print("\u001B[31m(R="+buffer.size()+";n="+len+")\u001B[0m");
                         continue;
-
                     }
-                    
                     if(redData > 191 & redData < 200){  //8-bit Lengths
                         redData = decodeLength(redData);
                         
@@ -401,7 +408,6 @@ public class OOP {
 
                         redData = decodeDistance();
                         out.writeShort(redData);
-                        //System.out.println(redData);////////////////////////////////
                         Print(print, 3, redData);//PRINT
                         continue;
                     
@@ -410,6 +416,10 @@ public class OOP {
 
                 in.close();
                 out.close();
+                System.out.println();
+                for (String element : buffer) {
+                    System.out.print(element + " ");
+                }
                 System.out.println("\u001B[33mDecompressed in file \""+output+"\"\033[0m");
             } catch (IOException e){System.out.println(e);}
         }
@@ -435,7 +445,7 @@ public class OOP {
                 case 6,7://2-bit ex
                     inc = redData - 6;
                     ex = buffer.remove() + buffer.remove();
-                    len--;len--;
+                    len-=2;
                     redData = 9 + (4*inc) + Integer.parseInt(ex,2);
                     return redData;
                 case 8,9://3-bit ex
@@ -471,7 +481,13 @@ public class OOP {
                     return redData;
                 case 18,19://8-bit ex
                     inc = redData - 18;
-                    for(int i=0; i<8; i++) ex = ex + buffer.remove();
+                    for(int i=0; i<8; i++) {
+                        if(buffer.isEmpty()){
+                            System.out.println("!EMPTY!");
+                            System.out.println(buffer.size());
+                        }
+                        ex = ex + buffer.remove();
+                    }
                     len-=8;
                     redData = 513 + (256*inc) + Integer.parseInt(ex,2);
                     return redData;
@@ -526,7 +542,7 @@ public class OOP {
                 case 13,14,15,16:
                     inc = redData - 13;
                     ex = buffer.remove() + buffer.remove();
-                    len--;len--;
+                    len-=2;
                     redData = 19 + (4*inc) + Integer.parseInt(ex,2);
                     return redData;
                 case 17,18,19,20:
@@ -549,7 +565,7 @@ public class OOP {
                 case 193,194,195,196:
                     inc = redData - 193;
                     ex=buffer.remove()+buffer.remove()+buffer.remove()+buffer.remove()+buffer.remove();
-                    len-=4;
+                    len-=5;
                     redData = 131+(32*inc) + Integer.parseInt(ex,2);
                     // System.out.print((redData)+">error?");
                     return redData;
