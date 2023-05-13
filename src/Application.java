@@ -5,27 +5,25 @@ import java.nio.file.Path;
 public class Application {
     public static void main(String[] args){
         long startTime = System.currentTimeMillis();
-        String file = "text.txt";
+        String file = "File3.html";
 
         //////////////////////// COMPRESSING
-        System.out.println("compressing ...");
+        System.out.print("compressing   ... ");
         LZSS.LzssCompress comp = new LZSS.LzssCompress(file, "temp.temp");
 		comp.compress();
         OOP.Compress.compressWithBlock1("temp.temp", "temp2.temp",0);
-        System.out.println("compressed!");
 
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
-        System.out.println("Elapsed time: " + elapsedTime + " milliseconds");
+        System.out.println("(time: " + elapsedTime + " millis)");
         //////////////////////// DECOMPRESSING
-        System.out.println("decompressing ...");
+        System.out.print("decompressing ... ");
         OOP.Decompress.decompressWithBlock1("temp2.temp", "temp.temp",0);
 		LZSS.LzssDecompress comp1 = new LZSS.LzssDecompress("temp.temp", "OUT.txt");
 		comp1.decompress();
-        System.out.println("decompressed!");
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
-        System.out.println("Elapsed time: " + elapsedTime + " milliseconds");
+        System.out.println("(time: " + elapsedTime + " millis)");
         
         try{
             if(compareFiles(Path.of(file), Path.of("OUT.txt"))) System.out.println("\u001B[32mFilesMatch\u001B[0m");
