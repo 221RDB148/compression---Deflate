@@ -16,15 +16,17 @@ public class Application {
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
         System.out.println("(time: " + elapsedTime + " millis)");
+        
         //////////////////////// DECOMPRESSING
         System.out.print("decompressing ... ");
         OOP.Decompress.decompressWithBlock1("temp2.temp", "temp.temp",0);
 		LZSS.LzssDecompress comp1 = new LZSS.LzssDecompress("temp.temp", "OUT.txt");
 		comp1.decompress();
+
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
         System.out.println("(time: " + elapsedTime + " millis)");
-        
+        ///////////// OTHER OUTPUT
         try{
             if(compareFiles(Path.of(file), Path.of("OUT.txt"))) System.out.println("\u001B[32mFilesMatch\u001B[0m");
             else System.out.println("\n\u001B[32mError, files don`t match!\u001B[0m\n");
