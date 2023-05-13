@@ -6,8 +6,8 @@ import java.io.IOException;
 
 public class LzssTest_copy {
     public static void main(String[] args) throws Exception {
+        // String file = "File1.html";
         String file = "File1.html";
-        // String file = "text.txt";
 
         int sBuffS = 32768; //32768 max
         int lBuffS = 258;   //258

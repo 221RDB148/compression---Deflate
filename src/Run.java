@@ -12,13 +12,13 @@ public class Run {
         int lBuffS = 258;   //258
 
 
-        for(int i=19000; i<20000; i++){
+        for(int i=3; i<4; i++){
 
-            System.out.print(i + "  ");//PRINT
+            System.out.print(i + "?=  ");//PRINT
 
             MakeFile("here.txt", i);
-            OOP.Compress.compressWithBlock1("here.txt", "output1.txt",0);
-            OOP.Decompress.decompressWithBlock1("output1.txt", "output2.txt",0);
+            OOP.Compress.compressWithBlock1("here.txt", "output1.txt",1);
+            OOP.Decompress.decompressWithBlock1("output1.txt", "output2.txt",1);
         }
 
     }
@@ -26,8 +26,12 @@ public class Run {
         DataOutputStream out = new DataOutputStream(new FileOutputStream(output));
         out.writeShort(65);
         out.writeShort(65);
-        out.writeShort(61440 + 10);
-        out.writeShort(a);
+        out.writeShort(65);
+
+        out.writeShort(61440 + a);
+        out.writeShort(10);
+
+        out.writeShort(65);
         out.writeShort(65);
         out.writeShort(65);
         out.close();

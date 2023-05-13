@@ -6,6 +6,27 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Application",
+            "request": "launch",
+            "mainClass": "Application",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Labd",
+            "request": "launch",
+            "mainClass": "Labd",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
+            "name": "Huff",
+            "request": "launch",
+            "mainClass": "Huff",
+            "projectName": "compression---Deflate_6b0a90a0"
+        },
+        {
+            "type": "java",
             "name": "OOP",
             "request": "launch",
             "mainClass": "OOP",

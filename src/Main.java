@@ -1,5 +1,5 @@
-// 000RDB000 Jānis Programmētājs
-// 111RDB111 Ilze Programmētāja
+// 061REB235 Jānis Sniķers
+// 221RDB148 Valters Mārtinsons
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -111,7 +111,7 @@ public class Main {
 		}
 	}	
 	public static void about() {
-		System.out.println("000RDB000 Jānis Programmētājs");
-		System.out.println("111RDB111 Ilze Programmētāja");
+		System.out.println("221RDB148 Valters Mārtinsons");
+		System.out.println("061REB235 Jānis Sniķers");
 	}
 }
